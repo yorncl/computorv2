@@ -34,7 +34,6 @@ pub enum Token {
     Delimiter(Delimiter)
 }
 
-#[derive(Default)]
 pub struct Lexer
 {
     pub tokens: Vec<Token>,
@@ -47,63 +46,69 @@ impl Lexer
     fn push_literal(&mut self, tok : Literal) { self.tokens.push(Token::Literal(tok)); }
     fn push_id(&mut self, id : String) { self.tokens.push(Token::Identifier(id)); }
 
-    pub fn flush(&mut self) {self.tokens = Vec::new();}
-
     fn unexpected_char(c : char, index : usize) -> Result<(), String> { Err(format!("Unexpected character '{}' at index {}", c, index)) }
 
-    // fn read_number() -> Result<(), String> {
-    // }
+    pub fn flush(&mut self) {self.tokens = Vec::new();}
+
+    pub fn new() -> Lexer 
+    {
+        Lexer {tokens : vec![]}
+    }
 
     pub fn tokenize(&mut self, input: &String) -> Result<(), String>
     {
         let mut index : usize = 0;
         let mut it = input.chars().peekable();
-        while let Some(c) = it.next()
+        while let Some(c) = it.peek()
         {
             match c {
                '\n' => return Ok(()),
-               '=' => self.push_punct(Punctuation::Equal),
-               '+' => self.push_punct(Punctuation::Plus),
-               '-' => self.push_punct(Punctuation::Minus),
-               '*' => self.push_punct(Punctuation::Times),
-               '/' => self.push_punct(Punctuation::Divide),
-               '^' => self.push_punct(Punctuation::Power),
-               ';' => self.push_punct(Punctuation::SemiColon),
-               ',' => self.push_punct(Punctuation::Comma),
-               '?' => self.push_punct(Punctuation::Interrogation),
-               '(' => self.push_delim(Delimiter::OpenParenthese),
-               ')' => self.push_delim(Delimiter::CloseParenthese),
-               '[' => self.push_delim(Delimiter::OpenBracket),
-               ']' => self.push_delim(Delimiter::CloseBracket),
+               '=' => { self.push_punct(Punctuation::Equal); it.next(); index += 1; },
+               '+' => { self.push_punct(Punctuation::Plus); it.next(); index += 1;},
+               '-' => { self.push_punct(Punctuation::Minus); it.next(); index += 1;},
+               '*' => { self.push_punct(Punctuation::Times); it.next(); index += 1;},
+               '/' => { self.push_punct(Punctuation::Divide); it.next(); index += 1;},
+               '^' => { self.push_punct(Punctuation::Power); it.next(); index += 1;},
+               ';' => { self.push_punct(Punctuation::SemiColon); it.next(); index += 1;},
+               ',' => { self.push_punct(Punctuation::Comma); it.next(); index += 1;},
+               '?' => { self.push_punct(Punctuation::Interrogation); it.next(); index += 1;},
+               '(' => { self.push_delim(Delimiter::OpenParenthese); it.next(); index += 1;},
+               ')' => { self.push_delim(Delimiter::CloseParenthese); it.next(); index += 1;},
+               '[' => { self.push_delim(Delimiter::OpenBracket); it.next(); index += 1;},
+               ']' => { self.push_delim(Delimiter::CloseBracket); it.next(); index += 1;},
                _ => {
                 // Parsing Number
-                let mut c : char = c;
+                let mut value : i64 = 0;
                 if c.is_digit(10) {
-                    let mut value : i64 = 0; // TODO implement float support
-                    while c.is_digit(10) {
+                    while let Some(c) = it.peek() {
+                        if !c.is_digit(10) {break};
                         value *= 10;
                         value += c.to_digit(10).unwrap() as i64;
-                        if it.peek().is_none()
-                        {
-                            break;
-                        }
-                        c = it.next().unwrap(); 
+                        it.next();
                         index += 1;
                     }
-                    if c.is_alphabetic() { // TODO refactor, very ugly
-                        if c == 'i' {
-                            match it.peek() {
-                                Some(nc) => {
-                                    if nc.is_alphanumeric() {
-                                        return Lexer::unexpected_char(*nc, index + 1);
-                                    }
-                                    self.push_literal(Literal::Complex(value))
-                                },
-                                None => self.push_literal(Literal::Complex(value))
+                    if let Some(c) = it.peek() { // TODO refactor, very ugly
+                        if c.is_alphanumeric()
+                        {
+                            if *c == 'i' {
+                                it.next();
+                                index += 1;
+                                match it.peek() {
+                                    Some(nc) => {
+                                        if nc.is_alphanumeric() {
+                                            return Lexer::unexpected_char(*nc, index + 1);
+                                        }
+                                        self.push_literal(Literal::Complex(value))
+                                    },
+                                    None => self.push_literal(Literal::Complex(value))
+                                }
+                            }
+                            else {
+                                return Lexer::unexpected_char(*c, index);
                             }
                         }
                         else {
-                            return Lexer::unexpected_char(c, index);
+                            self.push_literal(Literal::Number(value));
                         }
                     }
                     else 
@@ -114,7 +119,7 @@ impl Lexer
                 // Parsing identifier/keywords
                 else if c.is_alphabetic() {
                    let mut chars = String::new();
-                   chars.push(c);
+                   chars.push(*c);
                    while let Some(curr) = it.peek(){
                        if !curr.is_alphanumeric() {break};
                        chars.push(*curr);
@@ -125,7 +130,6 @@ impl Lexer
                 }
                }
             }
-            index += 1;
        }
        Ok(())
     }
@@ -141,7 +145,7 @@ mod test
     #[test]
     fn test_integer_simple()
     {
-        let mut lex = Lexer::default();
+        let mut lex = Lexer::new();
         let pattern = String::from("239487329");
         let repr = Vec::from([Token::Literal(Literal::Number(239487329))]);
         let _ = lex.tokenize(&pattern);
@@ -151,9 +155,22 @@ mod test
     #[test]
     fn test_complex_simple()
     {
-        let mut lex = Lexer::default();
+        let mut lex = Lexer::new();
         let pattern = String::from("239487329i");
         let repr = Vec::from([Token::Literal(Literal::Complex(239487329))]);
+        let _ = lex.tokenize(&pattern);
+        assert_eq!(lex.tokens, repr);
+    }
+
+    #[test]
+    fn test_mult_simple()
+    {
+        let mut lex = Lexer::new();
+        let pattern = String::from("6*42");
+
+        let repr : Vec<Token> = vec![Token::Literal(Literal::Number(6)),
+                                Token::Punctuation(Punctuation::Times),
+                                Token::Literal(Literal::Number(42))];
         let _ = lex.tokenize(&pattern);
         assert_eq!(lex.tokens, repr);
     }

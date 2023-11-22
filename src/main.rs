@@ -5,7 +5,7 @@ mod lex;
 fn main() -> Result<(), u32> {
     let stdin = io::stdin();
     let mut buff : String = String::default();
-    let mut lexer = lex::Lexer::default();
+    let mut lexer = lex::Lexer::new();
     loop {
         stdin.read_line(&mut buff).unwrap();
         let line = buff.strip_suffix('\n').unwrap();
