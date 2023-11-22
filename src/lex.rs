@@ -1,11 +1,11 @@
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum Literal {
     Number(i64),
     Complex(i64)
     // Integer(i64),
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum Punctuation {
     Equal,
     Plus,
@@ -18,7 +18,7 @@ pub enum Punctuation {
     Interrogation
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum Delimiter {
     OpenParenthese,
     CloseParenthese,
@@ -26,7 +26,7 @@ pub enum Delimiter {
     CloseBracket
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum Token {
     Identifier(String),
     Punctuation(Punctuation),
@@ -129,4 +129,33 @@ impl Lexer
        }
        Ok(())
     }
+}
+
+
+#[cfg(test)]
+mod test
+{
+    use super::*;
+
+
+    #[test]
+    fn test_integer_simple()
+    {
+        let mut lex = Lexer::default();
+        let pattern = String::from("239487329");
+        let repr = Vec::from([Token::Literal(Literal::Number(239487329))]);
+        let _ = lex.tokenize(&pattern);
+        assert_eq!(lex.tokens, repr);
+    }
+
+    #[test]
+    fn test_complex_simple()
+    {
+        let mut lex = Lexer::default();
+        let pattern = String::from("239487329i");
+        let repr = Vec::from([Token::Literal(Literal::Complex(239487329))]);
+        let _ = lex.tokenize(&pattern);
+        assert_eq!(lex.tokens, repr);
+    }
+
 }

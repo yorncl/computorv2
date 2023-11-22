@@ -2,7 +2,6 @@ use std::io;
 
 mod lex;
 
-
 fn main() -> Result<(), u32> {
     let stdin = io::stdin();
     let mut buff : String = String::default();
