@@ -1,38 +1,4 @@
-#[derive(Debug, PartialEq, Eq)]
-pub enum Literal {
-    Number(i64),
-    Complex(i64)
-    // Integer(i64),
-}
-
-#[derive(Debug, PartialEq, Eq)]
-pub enum Punctuation {
-    Equal,
-    Plus,
-    Minus,
-    Times,
-    Divide,
-    Power,
-    SemiColon,
-    Comma,
-    Interrogation
-}
-
-#[derive(Debug, PartialEq, Eq)]
-pub enum Delimiter {
-    OpenParenthese,
-    CloseParenthese,
-    OpenBracket,
-    CloseBracket
-}
-
-#[derive(Debug, PartialEq, Eq)]
-pub enum Token {
-    Identifier(String),
-    Punctuation(Punctuation),
-    Literal(Literal),
-    Delimiter(Delimiter)
-}
+use crate::tok::*;
 
 pub struct Lexer
 {
@@ -66,7 +32,26 @@ impl Lexer
                '=' => { self.push_punct(Punctuation::Equal); it.next(); index += 1; },
                '+' => { self.push_punct(Punctuation::Plus); it.next(); index += 1;},
                '-' => { self.push_punct(Punctuation::Minus); it.next(); index += 1;},
-               '*' => { self.push_punct(Punctuation::Times); it.next(); index += 1;},
+               '*' => {
+                   it.next();
+                   index+=1;
+                   match it.peek()
+                   {
+                       Some(c) => {
+                            if *c == '*' {
+                                self.push_punct(Punctuation::MatrixTimes);
+                                it.next();
+                                index += 1;
+                            }
+                            else
+                            {
+                                self.push_punct(Punctuation::Times);
+                            }
+                       },
+                       None => self.push_punct(Punctuation::Times)
+                   }
+               }
+               '%' => { self.push_punct(Punctuation::Modulo); it.next(); index += 1;},
                '/' => { self.push_punct(Punctuation::Divide); it.next(); index += 1;},
                '^' => { self.push_punct(Punctuation::Power); it.next(); index += 1;},
                ';' => { self.push_punct(Punctuation::SemiColon); it.next(); index += 1;},
