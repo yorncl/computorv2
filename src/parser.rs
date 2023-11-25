@@ -1,97 +1,72 @@
 use crate::tok::*;
-use std::rc::*;
-
-/*
-
-   Grammar TODO probably not complete and quite wrong
-
-   TERMINALS : IDENTIFIER, LITERAL
-
-   statement
-   :^ statement $
-   |declaration
-   |expression
-   |equation 
-
-   expression:
-    : '(' expression ')'
-    | expression binary_operator expression
-    | function_identifier
-    | matrix
-    | LITERAL
-    | IDENTIFIER
-
-    matrix:
-    : '[' (expression ';')* expression? ']'
-
-    binary_operator:
-    : + - * / ^ % ** 
-
-   declaration
-   :var_declaration
-   |function_declaration 
-
-   var_declaration
-   :IDENTIFIER '=' expression
-
-
-   function_declaration
-   : function_identifier '=' expression
-
-   function_identifier
-   :IDENTIFIER '(' (function_param,)*function_param? ')'
-
-   function_param
-   :IDENTIFIER
-   |LITERAL
-
-   equation
-   : expression '=' '?' 
-   | polynomial_equation
-
-   polynomial_equation:
-   : expression '=' IDENTIFIER '?'  // polynomial
-
-
-   array
-   : '[' initializer_list ']'
-
-*/
-
+use crate::ast::*;
 
 pub struct Parser<'a>
 {
     index : usize,
-    tokens : Option<&'a Vec<Token>>
+    tokens : &'a Vec<Token>
 }
 
 impl<'a> Parser<'a>
 {
-    pub fn new() -> Parser<'a>
+    pub fn new(tokens : &'a Vec<Token>) -> Parser<'a>
     {
-        Parser {index : 0, tokens : None}
+        Parser {index : 0, tokens : tokens}
     }
 
-    pub fn parse(&mut self, tokens : &'a Vec<Token>)
+    pub fn parse(&mut self) -> Node
     {
-        self.tokens = Some(&tokens);
-        self.statement();
+        self.statement()
     }
 
-    fn peek()
+    fn check(&self, t : Token) -> bool
     {
+        if self.tokens[self.index] == t 
+        {
+            true
+        } 
+        else 
+        {
+            false
+        }
     }
 
-    fn statement(&mut self)
+    fn curr(&self) -> &Token
     {
+        &self.tokens[self.index]
     }
 
-    fn declaration(&mut self)
+    fn consume(&mut self)
     {
+        self.index += 1;
     }
 
-    fn expression(&mut self)
+    fn consume_n(&mut self, n : usize)
     {
+        self.index += n;
     }
 
+    fn statement(&mut self) -> Node
+    {
+        self.expression()
+    }
+
+    fn expression(&mut self) -> Node
+    {
+        self.term()
+    }
+
+    fn term(&mut self) -> Node
+    {
+        let u = self.factor();
+        while (self.check(Token::Plus) || self.check(Token::Minus))
+        {
+        }
+        Node::Term { op: Binary::Plus, left: None, right: None }
+    }
+
+    fn factor(&mut self) -> Node
+    {
+        Node::Factor { op: Binary::Times, left: None, right: None }
+    }
 }

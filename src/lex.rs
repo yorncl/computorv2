@@ -5,10 +5,6 @@ fn unexpected_char(c : char, index : usize) -> Result<(Vec<Token>), String> {
     Err(format!("Unexpected character '{}' at index {}", c, index))
 }
 
-fn punct(tok : Punctuation) -> Token { Token::Punctuation(tok) }
-fn delim(tok : Delimiter) -> Token { Token::Delimiter(tok) }
-fn liter(tok : Literal) -> Token { Token::Literal(tok) }
-
 pub fn tokenize(input: &String) -> Result<Vec<Token>, String>
 {
     let mut index : usize = 0;
@@ -19,9 +15,9 @@ pub fn tokenize(input: &String) -> Result<Vec<Token>, String>
     {
         match c {
            '\n' => break,
-           '=' => { tokens.push(punct(Punctuation::Equal)); it.next(); index += 1; },
-           '+' => { tokens.push(punct(Punctuation::Plus)); it.next(); index += 1;},
-           '-' => { tokens.push(punct(Punctuation::Minus)); it.next(); index += 1;},
+           '=' => { tokens.push(Token::Equal); it.next(); index += 1; },
+           '+' => { tokens.push(Token::Plus); it.next(); index += 1;},
+           '-' => { tokens.push(Token::Minus); it.next(); index += 1;},
            '*' => {
                it.next();
                index+=1;
@@ -29,28 +25,28 @@ pub fn tokenize(input: &String) -> Result<Vec<Token>, String>
                {
                    Some(c) => {
                         if *c == '*' {
-                            tokens.push(punct(Punctuation::MatrixTimes));
+                            tokens.push(Token::MatrixTimes);
                             it.next();
                             index += 1;
                         }
                         else
                         {
-                            tokens.push(punct(Punctuation::Times));
+                            tokens.push(Token::Times);
                         }
                    },
-                   None => tokens.push(punct(Punctuation::Times))
+                   None => tokens.push(Token::Times)
                }
            }
-           '%' => { tokens.push(punct(Punctuation::Modulo)); it.next(); index += 1;},
-           '/' => { tokens.push(punct(Punctuation::Divide)); it.next(); index += 1;},
-           '^' => { tokens.push(punct(Punctuation::Power)); it.next(); index += 1;},
-           ';' => { tokens.push(punct(Punctuation::SemiColon)); it.next(); index += 1;},
-           ',' => { tokens.push(punct(Punctuation::Comma)); it.next(); index += 1;},
-           '?' => { tokens.push(punct(Punctuation::Interrogation)); it.next(); index += 1;},
-           '(' => { tokens.push(delim(Delimiter::OpenParenthese)); it.next(); index += 1;},
-           ')' => { tokens.push(delim(Delimiter::CloseParenthese)); it.next(); index += 1;},
-           '[' => { tokens.push(delim(Delimiter::OpenBracket)); it.next(); index += 1;},
-           ']' => { tokens.push(delim(Delimiter::CloseBracket)); it.next(); index += 1;},
+           '%' => { tokens.push(Token::Modulo); it.next(); index += 1;},
+           '/' => { tokens.push(Token::Divide); it.next(); index += 1;},
+           '^' => { tokens.push(Token::Power); it.next(); index += 1;},
+           ';' => { tokens.push(Token::SemiColon); it.next(); index += 1;},
+           ',' => { tokens.push(Token::Comma); it.next(); index += 1;},
+           '?' => { tokens.push(Token::Interrogation); it.next(); index += 1;},
+           '(' => { tokens.push(Token::OpenParenthese); it.next(); index += 1;},
+           ')' => { tokens.push(Token::CloseParenthese); it.next(); index += 1;},
+           '[' => { tokens.push(Token::OpenBracket); it.next(); index += 1;},
+           ']' => { tokens.push(Token::CloseBracket); it.next(); index += 1;},
            _ => {
             // Parsing Number
             let mut value : i64 = 0;
@@ -73,9 +69,9 @@ pub fn tokenize(input: &String) -> Result<Vec<Token>, String>
                                     if nc.is_alphanumeric() {
                                         return unexpected_char(*nc, index + 1);
                                     }
-                                    tokens.push(liter(Literal::Complex(value)))
+                                    tokens.push(Token::Complex(value))
                                 },
-                                None => tokens.push(liter(Literal::Complex(value)))
+                                None => tokens.push(Token::Complex(value))
                             }
                         }
                         else {
@@ -83,12 +79,12 @@ pub fn tokenize(input: &String) -> Result<Vec<Token>, String>
                         }
                     }
                     else {
-                        tokens.push(liter(Literal::Number(value)));
+                        tokens.push(Token::Number(value));
                     }
                 }
                 else 
                 {
-                    tokens.push(liter(Literal::Number(value)))
+                    tokens.push(Token::Number(value))
                 }
             }
             // Parsing identifier/keywords
@@ -120,7 +116,7 @@ mod test
     fn test_integer_simple()
     {
         let pattern = String::from("239487329");
-        let repr = Vec::from([Token::Literal(Literal::Number(239487329))]);
+        let repr = Vec::from([Token::Number(239487329)]);
         let tokens = tokenize(&pattern).unwrap();
         assert_eq!(tokens, repr);
     }
@@ -129,7 +125,7 @@ mod test
     fn test_complex_simple()
     {
         let pattern = String::from("239487329i");
-        let repr = Vec::from([Token::Literal(Literal::Complex(239487329))]);
+        let repr = Vec::from([Token::Complex(239487329)]);
         let tokens = tokenize(&pattern).unwrap();
         assert_eq!(tokens, repr);
     }
@@ -139,9 +135,7 @@ mod test
     {
         let pattern = String::from("6*42");
 
-        let repr : Vec<Token> = vec![Token::Literal(Literal::Number(6)),
-                                Token::Punctuation(Punctuation::Times),
-                                Token::Literal(Literal::Number(42))];
+        let repr : Vec<Token> = vec![Token::Number(6), Token::Times, Token::Number(42)];
         let tokens = tokenize(&pattern).unwrap();
         assert_eq!(tokens, repr);
     }

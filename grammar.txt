@@ -1,0 +1,62 @@
+
+Grammar TODO probably not complete and quite wrong
+
+====== CURRENT GRAMMAR
+
+TERMINALS : IDENTIFIER, LITERALOPERATORS
+OPERATORS : + - * / ^ % ** 
+
+statement :^ statement $ | expression
+
+expression: term
+
+term : factor (('+' | '-') factor)*
+
+factor : unary (('*' | '/' | '%') unary)*
+
+unary: ('-') unary | exponent
+
+exponent: primary '^' primary | primary
+
+primary: LITERAL | IDENTIFIER | '(' expression ')'
+
+
+====== THE REST OF THE GRAMMAR LORD HAVE MERCY
+
+expression:
+:
+| expression binary_operator expression
+| function_identifier
+| matrix
+
+matrix:
+: '[' (expression ';')* expression? ']'
+
+declaration
+:var_declaration
+|function_declaration 
+
+var_declaration
+:IDENTIFIER '=' expression
+
+
+function_declaration
+: function_identifier '=' expression
+
+function_identifier
+:IDENTIFIER '(' (function_param,)*function_param? ')'
+
+function_param
+:IDENTIFIER
+|LITERAL
+
+equation
+: expression '=' '?' 
+| polynomial_equation
+
+polynomial_equation:
+: expression '=' IDENTIFIER '?'  // polynomial
+
+
+array
+: '[' initializer_list ']'
