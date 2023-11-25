@@ -7,23 +7,21 @@ mod tok;
 fn main() -> Result<(), u32> {
     let stdin = io::stdin();
     let mut buff : String = String::default();
-    let mut lexer = lex::Lexer::new();
-    let mut parser = parser::Parser::new();
+    let mut parser = parser:: Parser::new();
     loop {
         stdin.read_line(&mut buff).unwrap();
         let line = buff.strip_suffix('\n').unwrap();
         dbg!(line);
-        match lexer.tokenize(&buff)
+        match lex::tokenize(&buff)
         {
-            Ok(()) => {
-                for tok in lexer.tokens.iter() {
+            Ok(tokens) => {
+                for tok in tokens.iter() {
                     println!("{:?}", tok);
                 }
+                // let ast = parser::parse(tokens);
             },
-            Err(err) => eprintln!("Error while lexing : {}", err)
+            Err(err) => { eprintln!("Error : {}", err); continue }
         }
-
         buff.clear();
-        lexer.flush();
     }
 }

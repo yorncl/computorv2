@@ -72,23 +72,25 @@ impl<'a> Parser<'a>
         Parser {index : 0, tokens : None}
     }
 
-    pub fn parse(mut self)
+    pub fn parse(&mut self, tokens : &'a Vec<Token>)
     {
+        self.tokens = Some(&tokens);
+        self.statement();
     }
 
     fn peek()
     {
     }
 
-    fn statement(mut self)
+    fn statement(&mut self)
     {
     }
 
-    fn declaration(mut self)
+    fn declaration(&mut self)
     {
     }
 
-    fn expression(mut self)
+    fn expression(&mut self)
     {
     }
 
